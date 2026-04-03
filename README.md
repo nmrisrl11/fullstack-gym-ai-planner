@@ -1,4 +1,14 @@
-# React + TypeScript + Vite + shadcn/ui
+# Full Stack Gym AI Planner
+
+Learning Full Stack Development with
+
+- React
+- Node.js
+- Express
+- PosgreSQL
+- Prisma
+- Neon
+- OpenAI
 
 This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
 
