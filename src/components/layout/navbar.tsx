@@ -3,9 +3,11 @@ import { Dumbbell01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link } from "react-router-dom";
 import { buttonVariants } from "../ui/button";
+import { useAuth } from "@/context/auth-context";
+import { UserButton } from "@neondatabase/neon-js/auth/react";
 
 export default function Navbar() {
-	const user = false;
+	const user = useAuth();
 
 	return (
 		<header className="fixed top-0 right-0 left-0 z-50 border-b bg-background/80 backdrop-blur-md">
@@ -17,7 +19,7 @@ export default function Navbar() {
 
 				<nav>
 					{user ? (
-						<>
+						<div className="flex items-center gap-3">
 							<Link
 								to="/profile"
 								className={cn(
@@ -29,7 +31,9 @@ export default function Navbar() {
 							>
 								My Plan
 							</Link>
-						</>
+
+							<UserButton />
+						</div>
 					) : (
 						<>
 							<Link
