@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
+import type { UserProfile } from "@/types";
 import { ArrowRight02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { RedirectToSignIn, SignedIn } from "@neondatabase/neon-js/auth/react";
@@ -66,7 +67,7 @@ const selectBaseClassName =
 	"relative overflow-hidden rounded-md border border-input shadow-xs transition-[color,box-shadow] outline-none focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50 has-aria-invalid:border-destructive has-aria-invalid:ring-destructive/20 has-[input:is(:disabled)]:*:pointer-events-none dark:has-aria-invalid:ring-destructive/40";
 
 export default function Onboarding() {
-	const { user } = useAuth();
+	const { user, saveProfile } = useAuth();
 
 	const [formData, setFormData] = useState<FormData>({
 		goal: "bulk",
@@ -86,6 +87,18 @@ export default function Onboarding() {
 
 	async function handleQuestionnaire(e: React.SubmitEvent) {
 		e.preventDefault();
+
+		const profileData: Omit<UserProfile, "userId" | "updatedAt"> = {
+			goal: formData.goal as UserProfile["goal"],
+			experience: formData.experience as UserProfile["experience"],
+			daysPerWeek: parseInt(formData.daysPerWeek),
+			sessionLength: parseInt(formData.sessionLength),
+			equipment: formData.equipment as UserProfile["equipment"],
+			injuries: formData.injuries || undefined,
+			preferredSplit: formData.preferredSplit as UserProfile["preferredSplit"],
+		};
+
+		saveProfile(profileData);
 	}
 
 	return (

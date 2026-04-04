@@ -1,10 +1,12 @@
+import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth";
-import type { User } from "@/types";
+import type { User, UserProfile } from "@/types";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 interface AuthContextType {
 	user: User | null;
 	isLoading: boolean;
+	saveProfile: (profile: Omit<UserProfile, "userId" | "updatedAt">) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -36,8 +38,18 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 		return () => {};
 	}, []);
 
+	async function saveProfile(profileData: Omit<UserProfile, "userId" | "updatedAt">) {
+		if (!neonUser) {
+			throw new Error("User must be authenticated to save profile");
+		}
+
+		await api.saveProfile(neonUser.id, profileData);
+	}
+
 	return (
-		<AuthContext.Provider value={{ user: neonUser, isLoading }}>{children}</AuthContext.Provider>
+		<AuthContext.Provider value={{ user: neonUser, isLoading, saveProfile }}>
+			{children}
+		</AuthContext.Provider>
 	);
 }
 

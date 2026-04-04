@@ -1,0 +1,9 @@
+node_modules/
+coverage/
+.pnpm-store/
+build
+
+# lock files (optional)
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
