@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import type { UserProfile } from "@/types";
-import { ArrowRight02Icon } from "@hugeicons/core-free-icons";
+import { ArrowRight02Icon, LoaderCircle } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { RedirectToSignIn, SignedIn } from "@neondatabase/neon-js/auth/react";
 import { useState } from "react";
@@ -79,6 +79,9 @@ export default function Onboarding() {
 		preferredSplit: "upper_lower",
 	});
 
+	const [isGenerating, setIsGenerating] = useState(false);
+	const [error, setError] = useState("");
+
 	if (!user) return <RedirectToSignIn />;
 
 	function updateForm(field: keyof FormData, value: string | null) {
@@ -98,116 +101,55 @@ export default function Onboarding() {
 			preferredSplit: formData.preferredSplit as UserProfile["preferredSplit"],
 		};
 
-		saveProfile(profileData);
+		try {
+			saveProfile(profileData);
+			setIsGenerating(true);
+		} catch (error) {
+			setError(error instanceof Error ? error.message : "Failed to save profile");
+		} finally {
+			setIsGenerating(false);
+		}
 	}
 
 	return (
 		<SignedIn>
 			<div className="min-h-screen px-6 pt-24 pb-12">
 				<div className="mx-auto max-w-xl">
-					<Card>
-						<CardHeader>
-							<CardTitle className="text-2xl font-bold">Tell us about yourself</CardTitle>
-							<CardDescription className="text-base">
-								Help us create the perfect plan for you.
-							</CardDescription>
-						</CardHeader>
+					{!isGenerating ? (
+						<Card>
+							<CardHeader>
+								<CardTitle className="text-2xl font-bold">Tell us about yourself</CardTitle>
+								<CardDescription className="text-base">
+									Help us create the perfect plan for you.
+								</CardDescription>
+							</CardHeader>
 
-						<CardContent>
-							<form className="space-y-3" onSubmit={handleQuestionnaire}>
-								<div className={cn(selectBaseClassName)}>
-									<label
-										className="block px-3 py-2 text-xs font-medium text-foreground"
-										htmlFor="goalOptions"
-									>
-										What's your primary goal?
-									</label>
-
-									<Select
-										value={formData.goal}
-										onValueChange={(value) => updateForm("goal", value)}
-									>
-										<SelectTrigger
-											className="w-full rounded-t-md rounded-b-none border-none bg-transparent shadow-none focus:ring-0 focus:ring-offset-0"
-											id="goalOptions"
-										>
-											<span>
-												{goalOptions.find((o) => o.value === formData.goal)?.label ||
-													"Select Primary Goal"}
-											</span>
-										</SelectTrigger>
-
-										<SelectContent alignItemWithTrigger={false} className="rounded-md p-3">
-											{goalOptions.map((item) => {
-												return (
-													<SelectItem value={item.value} key={item.value}>
-														{item.label}
-													</SelectItem>
-												);
-											})}
-										</SelectContent>
-									</Select>
-								</div>
-
-								<div className={cn(selectBaseClassName)}>
-									<label
-										className="block px-3 py-2 text-xs font-medium text-foreground"
-										htmlFor="experienceOptions"
-									>
-										Training experience
-									</label>
-
-									<Select
-										value={formData.experience}
-										onValueChange={(value) => updateForm("experience", value)}
-									>
-										<SelectTrigger
-											className="w-full rounded-t-md rounded-b-none border-none bg-transparent shadow-none focus:ring-0 focus:ring-offset-0"
-											id="experienceOptions"
-										>
-											<span>
-												{experienceOptions.find((o) => o.value === formData.experience)?.label ||
-													"Select Training Experience"}
-											</span>
-										</SelectTrigger>
-
-										<SelectContent alignItemWithTrigger={false} className="rounded-md p-3">
-											{experienceOptions.map((item) => {
-												return (
-													<SelectItem value={item.value} key={item.value}>
-														{item.label}
-													</SelectItem>
-												);
-											})}
-										</SelectContent>
-									</Select>
-								</div>
-
-								<div className="grid gap-3 lg:grid-cols-2">
+							<CardContent>
+								<form className="space-y-3" onSubmit={handleQuestionnaire}>
 									<div className={cn(selectBaseClassName)}>
 										<label
 											className="block px-3 py-2 text-xs font-medium text-foreground"
-											htmlFor="daysOptions"
+											htmlFor="goalOptions"
 										>
-											Days per week
+											What's your primary goal?
 										</label>
 
 										<Select
-											value={formData.daysPerWeek}
-											onValueChange={(value) => updateForm("daysPerWeek", value)}
+											value={formData.goal}
+											onValueChange={(value) => updateForm("goal", value)}
 										>
 											<SelectTrigger
 												className="w-full rounded-t-md rounded-b-none border-none bg-transparent shadow-none focus:ring-0 focus:ring-offset-0"
-												id="daysOptions"
+												id="goalOptions"
 											>
 												<span>
-													{daysOptions.find((o) => o.value === formData.daysPerWeek)?.label ||
-														"Select Days per Week"}
+													{goalOptions.find((o) => o.value === formData.goal)?.label ||
+														"Select Primary Goal"}
 												</span>
 											</SelectTrigger>
 
 											<SelectContent alignItemWithTrigger={false} className="rounded-md p-3">
-												{daysOptions.map((item) => {
+												{goalOptions.map((item) => {
 													return (
 														<SelectItem value={item.value} key={item.value}>
 															{item.label}
@@ -221,27 +163,27 @@ export default function Onboarding() {
 									<div className={cn(selectBaseClassName)}>
 										<label
 											className="block px-3 py-2 text-xs font-medium text-foreground"
-											htmlFor="sessionOptions"
+											htmlFor="experienceOptions"
 										>
-											Session length
+											Training experience
 										</label>
 
 										<Select
-											value={formData.sessionLength}
-											onValueChange={(value) => updateForm("sessionLength", value)}
+											value={formData.experience}
+											onValueChange={(value) => updateForm("experience", value)}
 										>
 											<SelectTrigger
 												className="w-full rounded-t-md rounded-b-none border-none bg-transparent shadow-none focus:ring-0 focus:ring-offset-0"
-												id="sessionOptions"
+												id="experienceOptions"
 											>
 												<span>
-													{sessionOptions.find((o) => o.value === formData.sessionLength)?.label ||
-														"Select Session Length"}
+													{experienceOptions.find((o) => o.value === formData.experience)?.label ||
+														"Select Training Experience"}
 												</span>
 											</SelectTrigger>
 
 											<SelectContent alignItemWithTrigger={false} className="rounded-md p-3">
-												{sessionOptions.map((item) => {
+												{experienceOptions.map((item) => {
 													return (
 														<SelectItem value={item.value} key={item.value}>
 															{item.label}
@@ -251,97 +193,181 @@ export default function Onboarding() {
 											</SelectContent>
 										</Select>
 									</div>
-								</div>
 
-								<div className={cn(selectBaseClassName)}>
-									<label
-										className="block px-3 py-2 text-xs font-medium text-foreground"
-										htmlFor="equipmentOptions"
-									>
-										Equipment access
-									</label>
+									<div className="grid gap-3 lg:grid-cols-2">
+										<div className={cn(selectBaseClassName)}>
+											<label
+												className="block px-3 py-2 text-xs font-medium text-foreground"
+												htmlFor="daysOptions"
+											>
+												Days per week
+											</label>
 
-									<Select
-										value={formData.equipment}
-										onValueChange={(value) => updateForm("equipment", value)}
-									>
-										<SelectTrigger
-											className="w-full rounded-t-md rounded-b-none border-none bg-transparent shadow-none focus:ring-0 focus:ring-offset-0"
-											id="equipmentOptions"
+											<Select
+												value={formData.daysPerWeek}
+												onValueChange={(value) => updateForm("daysPerWeek", value)}
+											>
+												<SelectTrigger
+													className="w-full rounded-t-md rounded-b-none border-none bg-transparent shadow-none focus:ring-0 focus:ring-offset-0"
+													id="daysOptions"
+												>
+													<span>
+														{daysOptions.find((o) => o.value === formData.daysPerWeek)?.label ||
+															"Select Days per Week"}
+													</span>
+												</SelectTrigger>
+
+												<SelectContent alignItemWithTrigger={false} className="rounded-md p-3">
+													{daysOptions.map((item) => {
+														return (
+															<SelectItem value={item.value} key={item.value}>
+																{item.label}
+															</SelectItem>
+														);
+													})}
+												</SelectContent>
+											</Select>
+										</div>
+
+										<div className={cn(selectBaseClassName)}>
+											<label
+												className="block px-3 py-2 text-xs font-medium text-foreground"
+												htmlFor="sessionOptions"
+											>
+												Session length
+											</label>
+
+											<Select
+												value={formData.sessionLength}
+												onValueChange={(value) => updateForm("sessionLength", value)}
+											>
+												<SelectTrigger
+													className="w-full rounded-t-md rounded-b-none border-none bg-transparent shadow-none focus:ring-0 focus:ring-offset-0"
+													id="sessionOptions"
+												>
+													<span>
+														{sessionOptions.find((o) => o.value === formData.sessionLength)
+															?.label || "Select Session Length"}
+													</span>
+												</SelectTrigger>
+
+												<SelectContent alignItemWithTrigger={false} className="rounded-md p-3">
+													{sessionOptions.map((item) => {
+														return (
+															<SelectItem value={item.value} key={item.value}>
+																{item.label}
+															</SelectItem>
+														);
+													})}
+												</SelectContent>
+											</Select>
+										</div>
+									</div>
+
+									<div className={cn(selectBaseClassName)}>
+										<label
+											className="block px-3 py-2 text-xs font-medium text-foreground"
+											htmlFor="equipmentOptions"
 										>
-											<span>
-												{equipmentOptions.find((o) => o.value === formData.equipment)?.label ||
-													"Select Equipment"}
-											</span>
-										</SelectTrigger>
+											Equipment access
+										</label>
 
-										<SelectContent alignItemWithTrigger={false} className="rounded-md p-3">
-											{equipmentOptions.map((item) => {
-												return (
-													<SelectItem value={item.value} key={item.value}>
-														{item.label}
-													</SelectItem>
-												);
-											})}
-										</SelectContent>
-									</Select>
-								</div>
-
-								<div className={cn(selectBaseClassName)}>
-									<label
-										className="block px-3 py-2 text-xs font-medium text-foreground"
-										htmlFor="splitOptions"
-									>
-										Preferred training split
-									</label>
-
-									<Select
-										value={formData.preferredSplit}
-										onValueChange={(value) => updateForm("preferredSplit", value)}
-									>
-										<SelectTrigger
-											className="w-full rounded-t-md rounded-b-none border-none bg-transparent shadow-none focus:ring-0 focus:ring-offset-0"
-											id="splitOptions"
+										<Select
+											value={formData.equipment}
+											onValueChange={(value) => updateForm("equipment", value)}
 										>
-											<span>
-												{splitOptions.find((o) => o.value === formData.preferredSplit)?.label ||
-													"Select Preferred Training Split"}
-											</span>
-										</SelectTrigger>
+											<SelectTrigger
+												className="w-full rounded-t-md rounded-b-none border-none bg-transparent shadow-none focus:ring-0 focus:ring-offset-0"
+												id="equipmentOptions"
+											>
+												<span>
+													{equipmentOptions.find((o) => o.value === formData.equipment)?.label ||
+														"Select Equipment"}
+												</span>
+											</SelectTrigger>
 
-										<SelectContent alignItemWithTrigger={false} className="rounded-md p-3">
-											{splitOptions.map((item) => {
-												return (
-													<SelectItem value={item.value} key={item.value}>
-														{item.label}
-													</SelectItem>
-												);
-											})}
-										</SelectContent>
-									</Select>
-								</div>
+											<SelectContent alignItemWithTrigger={false} className="rounded-md p-3">
+												{equipmentOptions.map((item) => {
+													return (
+														<SelectItem value={item.value} key={item.value}>
+															{item.label}
+														</SelectItem>
+													);
+												})}
+											</SelectContent>
+										</Select>
+									</div>
 
-								<div className="mt-6 space-y-3">
-									<Label htmlFor="injuries">Any injuries or limitations? (optional)</Label>
-									<Textarea
-										className="field-sizing-content max-h-29.5 min-h-0 resize-none rounded-md bg-transparent text-sm"
-										id="injuries"
-										placeholder="E.g., lower back issues, shoulder impingement..."
-										value={formData.injuries}
-										onChange={(e) => updateForm("sessionLength", e.target.value)}
-									/>
-								</div>
+									<div className={cn(selectBaseClassName)}>
+										<label
+											className="block px-3 py-2 text-xs font-medium text-foreground"
+											htmlFor="splitOptions"
+										>
+											Preferred training split
+										</label>
 
-								<Button
-									type="submit"
-									className="w-full rounded-xl bg-brand-accent hover:bg-brand-accent-hover"
-								>
-									Generate My Plan
-									<HugeiconsIcon icon={ArrowRight02Icon} data-icon="inline-end" />
-								</Button>
-							</form>
-						</CardContent>
-					</Card>
+										<Select
+											value={formData.preferredSplit}
+											onValueChange={(value) => updateForm("preferredSplit", value)}
+										>
+											<SelectTrigger
+												className="w-full rounded-t-md rounded-b-none border-none bg-transparent shadow-none focus:ring-0 focus:ring-offset-0"
+												id="splitOptions"
+											>
+												<span>
+													{splitOptions.find((o) => o.value === formData.preferredSplit)?.label ||
+														"Select Preferred Training Split"}
+												</span>
+											</SelectTrigger>
+
+											<SelectContent alignItemWithTrigger={false} className="rounded-md p-3">
+												{splitOptions.map((item) => {
+													return (
+														<SelectItem value={item.value} key={item.value}>
+															{item.label}
+														</SelectItem>
+													);
+												})}
+											</SelectContent>
+										</Select>
+									</div>
+
+									<div className="mt-6 space-y-3">
+										<Label htmlFor="injuries">Any injuries or limitations? (optional)</Label>
+										<Textarea
+											className="field-sizing-content max-h-29.5 min-h-0 resize-none rounded-md bg-transparent text-sm"
+											id="injuries"
+											placeholder="E.g., lower back issues, shoulder impingement..."
+											value={formData.injuries}
+											onChange={(e) => updateForm("sessionLength", e.target.value)}
+										/>
+									</div>
+
+									<Button
+										type="submit"
+										className="w-full rounded-xl bg-brand-accent hover:bg-brand-accent-hover"
+									>
+										Generate My Plan
+										<HugeiconsIcon icon={ArrowRight02Icon} data-icon="inline-end" />
+									</Button>
+								</form>
+							</CardContent>
+						</Card>
+					) : (
+						<Card>
+							<CardHeader className="text-center">
+								<HugeiconsIcon
+									icon={LoaderCircle}
+									className="mx-auto mb-3 size-12 animate-spin text-brand-accent"
+								/>
+
+								<CardTitle className="text-2xl font-bold">Creating your Plan</CardTitle>
+								<CardDescription className="text-base">
+									Our AI is building your personalized training program...
+								</CardDescription>
+							</CardHeader>
+						</Card>
+					)}
 				</div>
 			</div>
 		</SignedIn>
