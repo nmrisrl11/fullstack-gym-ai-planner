@@ -10,6 +10,7 @@ import { ArrowRight02Icon, LoaderCircle } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { RedirectToSignIn, SignedIn } from "@neondatabase/neon-js/auth/react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface FormData {
 	goal: string;
@@ -67,7 +68,7 @@ const selectBaseClassName =
 	"relative overflow-hidden rounded-md border border-input shadow-xs transition-[color,box-shadow] outline-none focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50 has-aria-invalid:border-destructive has-aria-invalid:ring-destructive/20 has-[input:is(:disabled)]:*:pointer-events-none dark:has-aria-invalid:ring-destructive/40";
 
 export default function Onboarding() {
-	const { user, saveProfile } = useAuth();
+	const { user, saveProfile, generatePlan } = useAuth();
 
 	const [formData, setFormData] = useState<FormData>({
 		goal: "bulk",
@@ -81,6 +82,7 @@ export default function Onboarding() {
 
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [error, setError] = useState("");
+	const navigate = useNavigate();
 
 	if (!user) return <RedirectToSignIn />;
 
@@ -104,6 +106,8 @@ export default function Onboarding() {
 		try {
 			saveProfile(profileData);
 			setIsGenerating(true);
+			await generatePlan();
+			navigate("/profile");
 		} catch (error) {
 			setError(error instanceof Error ? error.message : "Failed to save profile");
 		} finally {
